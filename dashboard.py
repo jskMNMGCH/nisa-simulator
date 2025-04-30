@@ -15,30 +15,36 @@ fund_order = [
     "ゴールドファンド"
 ]
 
+# デフォルトのファンド設定（初期投資＆リターン・リスク定義）
 default_funds = [
-    {"name": "全世界株式",         "initial": 0,    "monthly": 100000,      "mean": 0.052,  "std": 0.16},   # 資産形成ハンドブック
-    {"name": "先進国株式",         "initial": 0,     "monthly": 0,      "mean": 0.051,  "std": 0.16},   # 資産形成ハンドブック
-    {"name": "米国株式_S&P500",    "initial": 0,   "monthly": 0,  "mean": 0.070,  "std": 0.20},   # 資産形成ハンドブック
-    {"name": "米国総合債券ファンド", "initial": 0,      "monthly": 0,    "mean": 0.025,  "std": 0.05},   # 一般市場データ
-    {"name": "国内株式_TOPIX",     "initial": 0,    "monthly": 0,      "mean": 0.050,  "std": 0.16},   # 資産形成ハンドブック
-    {"name": "国内株式_日経平均",  "initial": 0,   "monthly": 0,  "mean": 0.050,  "std": 0.16},   # 資産形成ハンドブック
-    {"name": "変動国債",            "initial": 0,    "monthly": 0,      "mean": 0.0083, "std": 0.02},   # 日本国債実績値
-    {"name": "ゴールドファンド",    "initial": 0,        "monthly": 0,   "mean": 0.040,  "std": 0.12},   # 市場推定値
+    {"name": "全世界株式",         "initial": 0,    "monthly": 100000,      "mean": 0.052,  "std": 0.16},
+    {"name": "先進国株式",         "initial": 0,     "monthly": 0,      "mean": 0.051,  "std": 0.16},
+    {"name": "米国株式_S&P500",    "initial": 0,   "monthly": 0,  "mean": 0.070,  "std": 0.20},
+    {"name": "米国総合債券ファンド", "initial": 0,      "monthly": 0,    "mean": 0.025,  "std": 0.05},
+    {"name": "国内株式_TOPIX",     "initial": 0,    "monthly": 0,      "mean": 0.050,  "std": 0.16},
+    {"name": "国内株式_日経平均",  "initial": 0,   "monthly": 0,  "mean": 0.050,  "std": 0.16},
+    {"name": "変動国債",            "initial": 0,    "monthly": 0,      "mean": 0.0083, "std": 0.02},
+    {"name": "ゴールドファンド",    "initial": 0,        "monthly": 0,   "mean": 0.040,  "std": 0.12},
 ]
 
+# プリセットごとの月額積立配分（fund_order の順番に対応）
+presets = {
+    "Conservative（保守型）": [30000, 10000, 10000, 40000, 5000, 5000, 0, 0],
+    "Balanced（バランス型）":  [25000, 15000, 15000, 20000, 10000, 10000, 5000, 0],
+    "Aggressive（積極型）":    [20000, 20000, 30000, 10000, 10000, 10000, 0, 0],
+}
+
 correlation_matrix = np.array([
-    [ 1.00, 0.98, 0.90, -0.18, 0.65, 0.60, -0.05, -0.25],  # 全世界株式
-    [ 0.98, 1.00, 0.92, -0.08, 0.68, 0.68, -0.06, -0.18],  # 先進国株式
-    [ 0.90, 0.92, 1.00, -0.06, 0.65, 0.60, -0.05, -0.25],  # 米国株式
-    [-0.18,-0.08,-0.06,  1.00,-0.05,-0.05,  0.05,  0.60],  # 米国総合債券
-    [ 0.65, 0.68, 0.65, -0.05, 1.00, 0.85,  0.00, -0.10],  # 国内株式_TOPIX
-    [ 0.60, 0.68, 0.60, -0.05, 0.85, 1.00,  0.00, -0.10],  # 国内株式_日経平均
-    [-0.05,-0.06,-0.05,  0.05, 0.00, 0.00,  1.00,  0.10],  # 変動国債
-    [-0.25,-0.18,-0.25,  0.60,-0.10,-0.10,  0.10,  1.00]   # ゴールドファンド
+    [ 1.00, 0.98, 0.90, -0.18, 0.65, 0.60, -0.05, -0.25],
+    [ 0.98, 1.00, 0.92, -0.08, 0.68, 0.68, -0.06, -0.18],
+    [ 0.90, 0.92, 1.00, -0.06, 0.65, 0.60, -0.05, -0.25],
+    [-0.18,-0.08,-0.06,  1.00,-0.05,-0.05,  0.05,  0.60],
+    [ 0.65, 0.68, 0.65, -0.05, 1.00, 0.85,  0.00, -0.10],
+    [ 0.60, 0.68, 0.60, -0.05, 0.85, 1.00,  0.00, -0.10],
+    [-0.05,-0.06,-0.05,  0.05, 0.00, 0.00,  1.00,  0.10],
+    [-0.25,-0.18,-0.25,  0.60,-0.10,-0.10,  0.10,  1.00],
 ])
 
-
-# --- 以下、アプリ本体 ---
 def simulate_montecarlo(fund_settings, correlation_matrix, n_simulation=20000, years=20):
     np.random.seed(42)
     months = years * 12
@@ -62,19 +68,58 @@ def main():
     st.set_page_config(page_title="つみたてシミュレーション", layout="wide")
     st.title("つみたてシミュレーション")
 
+    # ── サイドバー：シミュレーション設定 ──
     st.sidebar.header("シミュレーション設定")
     n_simulation = st.sidebar.slider("シミュレーション回数", 20000, 60000, 20000, step=5000)
     n_years = st.sidebar.number_input("運用年数（年）", min_value=1, max_value=50, value=20)
     run_simulation = st.sidebar.button("🚀 シミュレーション実行")
 
+    # ── サイドバー：プリセット選択 ──
+    st.sidebar.header("月額積立プリセット")
+    preset_name = st.sidebar.selectbox(
+        "プリセットを選択",
+        list(presets.keys()),
+        index=1  # デフォルトで Balanced を選ぶ場合は index=1
+    )
+    monthly_presets = presets[preset_name]
+    # ── プリセット選択部分の解説 ──
+    # ユーザーがプリセットを選ぶと、monthly_presets に各ファンドの月額積立額リストが入る
+
+    # ── サイドバー：ファンド設定 ──
     st.sidebar.header("ファンド設定")
     fund_settings = []
     for i, default in enumerate(default_funds):
         with st.sidebar.expander(default["name"], expanded=False):
-            initial = st.number_input(f"{default['name']}：初期投資額", min_value=0, value=default['initial'], step=1000, key=f"init_{i}")
-            monthly = st.number_input(f"{default['name']}：月額積立額", min_value=0, value=default['monthly'], step=1000, key=f"monthly_{i}")
-            mean_percent = st.number_input(f"{default['name']}：期待リターン（年率％）", value=default['mean'] * 100, step=0.1, format="%.2f", key=f"mean_{i}")
-            std_percent = st.number_input(f"{default['name']}：リスク（年率％）", value=default['std'] * 100, step=0.1, format="%.2f", key=f"std_{i}")
+            # 初期投資額は固定デフォルト、プリセットには含めない
+            initial = st.number_input(
+                f"{default['name']}：初期投資額",
+                min_value=0,
+                value=default['initial'],
+                step=1000,
+                key=f"init_{i}"
+            )
+            # 月額積立額はプリセット初期値を反映
+            monthly = st.number_input(
+                f"{default['name']}：月額積立額",
+                min_value=0,
+                value=monthly_presets[i],
+                step=1000,
+                key=f"monthly_{i}"
+            )
+            mean_percent = st.number_input(
+                f"{default['name']}：期待リターン（年率％）",
+                value=default['mean'] * 100,
+                step=0.1,
+                format="%.2f",
+                key=f"mean_{i}"
+            )
+            std_percent = st.number_input(
+                f"{default['name']}：リスク（年率％）",
+                value=default['std'] * 100,
+                step=0.1,
+                format="%.2f",
+                key=f"std_{i}"
+            )
             fund_settings.append({
                 "name": default["name"],
                 "initial": initial,
@@ -84,6 +129,7 @@ def main():
             })
 
     if run_simulation:
+        # （以下は既存のシミュレーション → 結果表示ロジックと同じ）
         result = simulate_montecarlo(fund_settings, correlation_matrix, n_simulation=n_simulation, years=n_years)
         years = np.arange(1, n_years + 1)
         df_result = pd.DataFrame(result.T, columns=[f"{y}年目" for y in years])
@@ -131,17 +177,12 @@ def main():
         with tab3:
             st.subheader(f"{n_years}年後 損益分布")
             profit = df_result["最終資産"] - total_principal
-
             lower = np.percentile(profit, 0)
             upper = np.percentile(profit, 99)
-
             mean_profit = profit.mean()
             median_profit = profit.median()
-
             hist, bin_edges = np.histogram(profit, bins=500, range=(lower, upper))
-            max_bin_index = np.argmax(hist)
-            mode_profit = (bin_edges[max_bin_index] + bin_edges[max_bin_index + 1]) / 2
-
+            mode_profit = (bin_edges[np.argmax(hist)] + bin_edges[np.argmax(hist) + 1]) / 2
             mean_profit_pct = (mean_profit / total_principal) * 100
             median_profit_pct = (median_profit / total_principal) * 100
             mode_profit_pct = (mode_profit / total_principal) * 100
@@ -149,11 +190,9 @@ def main():
             fig_profit = px.histogram(x=profit, nbins=500, labels={"x": "損益 (円)"}, title="損益ヒストグラム")
             fig_profit.update_traces(histnorm="percent")
             fig_profit.update_layout(yaxis_title="確率（%）", xaxis_range=[lower, upper])
-
-            fig_profit.add_vline(x=mean_profit, line_dash="dash", line_color="blue", annotation_text="平均", annotation_position="top left")
-            fig_profit.add_vline(x=median_profit, line_dash="dot", line_color="green", annotation_text="中央値", annotation_position="top left")
-            fig_profit.add_vline(x=mode_profit, line_dash="solid", line_color="red", annotation_text="最頻値", annotation_position="top left")
-
+            fig_profit.add_vline(x=mean_profit, line_dash="dash", annotation_text="平均", annotation_position="top left")
+            fig_profit.add_vline(x=median_profit, line_dash="dot", annotation_text="中央値", annotation_position="top left")
+            fig_profit.add_vline(x=mode_profit, line_dash="solid", annotation_text="最頻値", annotation_position="top left")
             st.plotly_chart(fig_profit, use_container_width=True)
 
             st.markdown(f"""
@@ -180,3 +219,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

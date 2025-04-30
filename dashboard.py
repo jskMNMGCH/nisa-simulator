@@ -137,7 +137,7 @@ def main():
             )
             st.plotly_chart(fig, use_container_width=True)
 
-       with tab3:
+        with tab3:
             st.subheader(f"{n_years}年後 損益分布")
             profit = df_result["最終資産"] - total_principal
             lower = np.percentile(profit, 0)

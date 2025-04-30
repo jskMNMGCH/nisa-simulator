@@ -78,7 +78,7 @@ def main():
     preset_name = st.sidebar.selectbox(
         "プリセットを選択",
         list(presets.keys()),
-        index=1  # デフォルトで Balanced を選択
+        index=1
     )
     monthly_presets = presets[preset_name]
 
@@ -149,7 +149,7 @@ def main():
             "monthly": "月額積立額"
         })
 
-        tab1, tab2, tab3, tab4 = st.tabs(["総合指標", "資産推移", "損益ヒストグラム", "ファンド設定一覧"]);
+        tab1, tab2, tab3, tab4 = st.tabs(["総合指標", "資産推移", "損益ヒストグラム", "ファンド設定一覧"])
 
         with tab1:
             st.subheader("総合指標")
@@ -164,7 +164,6 @@ def main():
             st.subheader("平均・中央値資産推移")
             mean_total = df_result.iloc[:, :-1].mean()
             median_total = df_result.iloc[:, :-1].median()
-            # 平均値資産推移を青色に固定
             fig = px.line(
                 x=years,
                 y=mean_total,
@@ -172,7 +171,6 @@ def main():
                 title="平均資産推移",
                 color_discrete_sequence=["blue"]
             )
-            # 中央値資産推移をオレンジ色に固定
             fig.add_scatter(
                 x=years,
                 y=median_total,
@@ -190,9 +188,11 @@ def main():
             upper = np.percentile(profit, 99)
             mean_profit = profit.mean()
             median_profit = profit.median()
-            mode_profit = (np.percentile(profit, np.bincount(np.digitize(profit, bins=np.linspace(lower, upper, 501))).argmax()) )
+            # 最頻値をヒストグラムから算出
+            hist, bin_edges = np.histogram(profit, bins=500, range=(lower, upper))
+            mode_index = np.argmax(hist)
+            mode_profit = (bin_edges[mode_index] + bin_edges[mode_index+1]) / 2
 
-            # 損益ヒストグラム
             fig_profit = px.histogram(
                 x=profit,
                 nbins=500,
@@ -201,7 +201,6 @@ def main():
             )
             fig_profit.update_traces(histnorm="percent")
             fig_profit.update_layout(yaxis_title="確率（%）", xaxis_range=[lower, upper])
-            # 平均線を青色で描画
             fig_profit.add_vline(
                 x=mean_profit,
                 line_dash="dash",
@@ -209,7 +208,6 @@ def main():
                 annotation_text="平均",
                 annotation_position="top right"
             )
-            # 中央値線をオレンジ色で描画
             fig_profit.add_vline(
                 x=median_profit,
                 line_dash="dot",
@@ -217,7 +215,6 @@ def main():
                 annotation_text="中央値",
                 annotation_position="top left"
             )
-            # 最頻値線を緑色で描画
             fig_profit.add_vline(
                 x=mode_profit,
                 line_dash="solid",
@@ -237,7 +234,6 @@ def main():
 
         with tab4:
             st.subheader("現状のファンド設定")
-            df_funds = df_funds.copy()
             st.dataframe(df_funds.style.format({
                 "初期投資額": "{:,.0f} 円",
                 "月額積立額": "{:,.0f} 円",
@@ -253,4 +249,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

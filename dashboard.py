@@ -137,18 +137,18 @@ def main():
             )
             st.plotly_chart(fig, use_container_width=True)
 
-        with tab3:
+                with tab3:
             st.subheader(f"{n_years}年後 損益分布")
-            profit = df_result["最終資産"] - total_principal
+            profit = df["最終資産"] - principal
             lower = np.percentile(profit, 0)
             upper = np.percentile(profit, 99)
             mean_profit = profit.mean()
             median_profit = profit.median()
             hist, bin_edges = np.histogram(profit, bins=500, range=(lower, upper))
             mode_profit = (bin_edges[np.argmax(hist)] + bin_edges[np.argmax(hist) + 1]) / 2
-            mean_profit_pct = (mean_profit / total_principal) * 100
-            median_profit_pct = (median_profit / total_principal) * 100
-            mode_profit_pct = (mode_profit / total_principal) * 100
+            mean_profit_pct = (mean_profit / principal) * 100
+            median_profit_pct = (median_profit / principal) * 100
+            mode_profit_pct = (mode_profit / principal) * 100
 
             fig_profit = px.histogram(
                 x=profit,

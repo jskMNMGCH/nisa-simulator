@@ -154,6 +154,13 @@ def main():
             fp.add_vline(x=mo, line_dash="solid", line_color="green", annotation_text="最頻値", annotation_position="top left")
             st.plotly_chart(fp, use_container_width=True)
 
+            st.markdown(f"""
+            #### 含み損益まとめ
+            - 平均損益：{mean_profit:,.0f} 円（{mean_profit_pct:+.2f}%）
+            - 中央値損益：{median_profit:,.0f} 円（{median_profit_pct:+.2f}%）
+            - 最頻値損益：{mode_profit:,.0f} 円（{mode_profit_pct:+.2f}%）
+            """)
+
         with tab4:
             st.subheader("ファンド設定一覧")
             st.dataframe(df_f.style.format({"初期投資額":"{:,.0f} 円","月額積立額":"{:,.0f} 円","期待リターン（％）":"{:.2f}","リスク（％）":"{:.2f}"}), use_container_width=True)

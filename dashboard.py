@@ -59,8 +59,8 @@ def simulate_montecarlo(fund_settings, correlation_matrix, n_simulation=20000, y
     return np.array(total_history)
 
 def main():
-    st.set_page_config(page_title="NISA Simulation", layout="wide")
-    st.title("NISA Simulation（毎月積立・相関あり）")
+    st.set_page_config(page_title="NISA シミュレーション", layout="wide")
+    st.title("NISA シミュレーション（毎月積立・相関あり）")
 
     st.sidebar.header("シミュレーション設定")
     n_simulation = st.sidebar.slider("シミュレーション回数", 20000, 60000, 30000, step=5000)

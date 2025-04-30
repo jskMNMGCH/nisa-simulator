@@ -63,7 +63,7 @@ def main():
     st.title("NISA シミュレーション")
 
     st.sidebar.header("シミュレーション設定")
-    n_simulation = st.sidebar.slider("シミュレーション回数", 20000, 60000, 30000, step=5000)
+    n_simulation = st.sidebar.slider("シミュレーション回数", 20000, 60000, 20000, step=5000)
     n_years = st.sidebar.number_input("運用年数（年）", min_value=1, max_value=50, value=20)
     run_simulation = st.sidebar.button("🚀 シミュレーション実行")
 

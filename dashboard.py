@@ -65,190 +65,103 @@ def simulate_montecarlo(fund_settings, correlation_matrix, n_simulation=20000, y
 
 def main():
     st.set_page_config(page_title="つみたてシミュレーション", layout="wide")
-    st.title("つみたてシミュレーション")
+    st.title("つみたてシミレーション")
 
-    # ── サイドバー：シミュレーション設定 ──
+    # サイドバー設定
     st.sidebar.header("シミュレーション設定")
     n_simulation = st.sidebar.slider("シミュレーション回数", 20000, 60000, 20000, step=5000)
     n_years = st.sidebar.number_input("運用年数（年）", min_value=1, max_value=50, value=20)
     run_simulation = st.sidebar.button("🚀 シミュレーション実行")
 
-    # ── サイドバー：プリセット選択 ──
     st.sidebar.header("月額積立プリセット")
-    preset_name = st.sidebar.selectbox(
-        "プリセットを選択",
-        list(presets.keys()),
-        index=1
-    )
+    preset_name = st.sidebar.selectbox("プリセットを選択", list(presets.keys()), index=1)
     monthly_presets = presets[preset_name]
 
-    # ── サイドバー：ファンド設定 ──
     st.sidebar.header("ファンド設定")
     fund_settings = []
-    for i, default in enumerate(default_funds):
-        with st.sidebar.expander(default["name"], expanded=False):
-            initial = st.number_input(
-                f"{default['name']}：初期投資額",
-                min_value=0,
-                value=default['initial'],
-                step=1000,
-                key=f"init_{i}"
-            )
-            monthly = st.number_input(
-                f"{default['name']}：月額積立額",
-                min_value=0,
-                value=monthly_presets[i],
-                step=1000,
-                key=f"monthly_{i}"
-            )
-            mean_percent = st.number_input(
-                f"{default['name']}：期待リターン（年率％）",
-                value=default['mean'] * 100,
-                step=0.1,
-                format="%.2f",
-                key=f"mean_{i}"
-            )
-            std_percent = st.number_input(
-                f"{default['name']}：リスク（年率％）",
-                value=default['std'] * 100,
-                step=0.1,
-                format="%.2f",
-                key=f"std_{i}"
-            )
+    for i, d in enumerate(default_funds):
+        with st.sidebar.expander(d["name"], expanded=False):
+            initial = st.number_input(f"{d['name']}：初期投資額", min_value=0, value=d['initial'], step=1000, key=f"init_{i}")
+            monthly = st.number_input(f"{d['name']}：月額積立額", min_value=0, value=monthly_presets[i], step=1000, key=f"monthly_{i}")
+            mean_p = st.number_input(f"{d['name']}：期待リターン（年率％）", value=d['mean']*100, step=0.1, format="%.2f", key=f"mean_{i}")
+            std_p = st.number_input(f"{d['name']}：リスク（年率％）", value=d['std']*100, step=0.1, format="%.2f", key=f"std_{i}")
             fund_settings.append({
-                "name": default["name"],
-                "initial": initial,
-                "monthly": monthly,
-                "mean": mean_percent / 100,
-                "std": std_percent / 100
+                "name": d['name'], "initial": initial, "monthly": monthly,
+                "mean": mean_p/100, "std": std_p/100
             })
 
     if run_simulation:
-        result = simulate_montecarlo(fund_settings, correlation_matrix, n_simulation=n_simulation, years=n_years)
-        years = np.arange(1, n_years + 1)
-        df_result = pd.DataFrame(result.T, columns=[f"{y}年目" for y in years])
-        df_result["最終資産"] = df_result.iloc[:, -1]
+        result = simulate_montecarlo(fund_settings, correlation_matrix, n_simulation, n_years)
+        years = np.arange(1, n_years+1)
+        df = pd.DataFrame(result.T, columns=[f"{y}年目" for y in years])
+        df["最終資産"] = df.iloc[:, -1]
 
-        initial_sum = sum(f["initial"] for f in fund_settings)
-        monthly_sum = sum(f["monthly"] for f in fund_settings)
-        total_principal = initial_sum + (monthly_sum * 12 * n_years)
+        principal = sum(f['initial'] for f in fund_settings) + sum(f['monthly'] for f in fund_settings)*12*n_years
+        rf = 0.083/100
+        ann_ret = (df["最終資産"]/principal)**(1/n_years) - 1
+        mean_ret, std_ret = ann_ret.mean(), ann_ret.std()
+        sharpe = (mean_ret - rf)/std_ret
+        loss_prob = (df["最終資産"] < principal).mean()*100
 
-        risk_free_rate = 0.083/100
-        returns_annual = (df_result["最終資産"] / total_principal) ** (1 / n_years) - 1
-        mean_return = returns_annual.mean()
-        std_return = returns_annual.std()
-        sharpe_ratio = (mean_return - risk_free_rate) / std_return
-        broken_rate = (df_result["最終資産"] < total_principal).mean() * 100
+        df_f = pd.DataFrame(fund_settings)
+        df_f["期待リターン（％）"] = df_f["mean"]*100
+        df_f["リスク（％）"] = df_f["std"]*100
+        df_f = df_f.drop(columns=["mean","std"]).rename(columns={"name":"ファンド名","initial":"初期投資額","monthly":"月額積立額"})
 
-        df_funds = pd.DataFrame(fund_settings)
-        df_funds["期待リターン（％）"] = df_funds["mean"] * 100
-        df_funds["リスク（％）"] = df_funds["std"] * 100
-        df_funds = df_funds.drop(columns=["mean", "std"]).rename(columns={
-            "name": "ファンド名",
-            "initial": "初期投資額",
-            "monthly": "月額積立額"
-        })
-
-        tab1, tab2, tab3, tab4 = st.tabs(["総合指標", "資産推移", "損益ヒストグラム", "ファンド設定一覧"])
+        tab1, tab2, tab3, tab4 = st.tabs(["総合指標","資産推移","損益ヒストグラム","ファンド設定一覧"])
 
         with tab1:
             st.subheader("総合指標")
-            col1, col2, col3 = st.columns(3)
-            col1.metric(f"シャープレシオ (RF={risk_free_rate*100:.3f}%)", f"{sharpe_ratio:.2f}")
-            col2.metric("最終資産中央値", f"{df_result['最終資産'].median():,.0f} 円")
-            col3.metric("元本割れ確率", f"{broken_rate:.2f} %")
-            st.write(f"期待年率リターン：{mean_return * 100:.2f} %")
-            st.write(f"リターン標準偏差（リスク）：{std_return * 100:.2f} %")
+            c1, c2, c3 = st.columns(3)
+            c1.metric(f"シャープレシオ (RF={rf*100:.3f}%)", f"{sharpe:.2f}")
+            c2.metric("最終資産中央値", f"{df['最終資産'].median():,.0f} 円")
+            c3.metric("元本割れ確率", f"{loss_prob:.2f} %")
+            st.write(f"期待年率リターン：{mean_ret*100:.2f} %")
+            st.write(f"リスク（年率標準偏差）：{std_ret*100:.2f} %")
 
         with tab2:
             st.subheader("平均・中央値資産推移")
-            mean_total = df_result.iloc[:,:-1].mean()
-            median_total = df_result.iloc[:,:-1].median()
+            mean_total, med_total = df.iloc[:,:-1].mean(), df.iloc[:,:-1].median()
             fig = px.line(
-                x=years,
-                y=mean_total,
+                x=years, y=mean_total,
                 labels={"x":"年","y":"資産（円）"},
                 title="平均・中央値資産推移",
                 color_discrete_sequence=["blue"]
             )
-            # 平均線に凡例を追加
-            fig.data[0].update(name="平均", legendgroup="平均")
-            # 中央値線を追加
+            # 平均線に凡例と表示設定を追加
+            fig.data[0].update(name="平均", legendgroup="平均", showlegend=True)
             fig.add_scatter(
-                x=years,
-                y=median_total,
-                mode="lines+markers",
-                name="中央値",
-                line_color="orange",
-                marker_color="orange"
+                x=years, y=med_total,
+                mode="lines+markers", name="中央値",
+                line_color="orange", marker_color="orange"
             )
             st.plotly_chart(fig, use_container_width=True)
 
         with tab3:
             st.subheader(f"{n_years}年後 損益分布")
-            profit = df_result["最終資産"] - total_principal
-            lower = np.percentile(profit, 0)
-            upper = np.percentile(profit, 99)
-            mean_profit = profit.mean()
-            median_profit = profit.median()
-            # 最頻値をヒストグラムから算出
-            hist, bin_edges = np.histogram(profit, bins=500, range=(lower, upper))
-            mode_index = np.argmax(hist)
-            mode_profit = (bin_edges[mode_index] + bin_edges[mode_index+1]) / 2
+            profit = df["最終資産"] - principal
+            lower, upper = np.percentile(profit, [0, 99])
+            m, md = profit.mean(), profit.median()
+            hist, edges = np.histogram(profit, bins=500, range=(lower, upper))
+            mode_idx = np.argmax(hist)
+            mo = (edges[mode_idx] + edges[mode_idx+1]) / 2
 
-            fig_profit = px.histogram(
-                x=profit,
-                nbins=500,
-                labels={"x": "損益 (円)"},
-                title="損益ヒストグラム"
-            )
-            fig_profit.update_traces(histnorm="percent")
-            fig_profit.update_layout(yaxis_title="確率（%）", xaxis_range=[lower, upper])
-            fig_profit.add_vline(
-                x=mean_profit,
-                line_dash="dash",
-                line_color="blue",
-                annotation_text="平均値",
-                annotation_position="top right"
-            )
-            fig_profit.add_vline(
-                x=median_profit,
-                line_dash="dot",
-                line_color="orange",
-                annotation_text="中央値",
-                annotation_position="top left"
-            )
-            fig_profit.add_vline(
-                x=mode_profit,
-                line_dash="solid",
-                line_color="green",
-                annotation_text="最頻値",
-                annotation_position="top left"
-            )
-            st.plotly_chart(fig_profit, use_container_width=True)
-
-            st.markdown(f"""
-            #### 含み損益まとめ
-            - 平均損益：{mean_profit:,.0f} 円（{mean_profit/total_principal*100:+.2f}%）
-            - 中央値損益：{median_profit:,.0f} 円（{median_profit/total_principal*100:+.2f}%）
-            - 最頻値損益：{mode_profit:,.0f} 円（{mode_profit/total_principal*100:+.2f}%）
-            """
-            )
+            fp = px.histogram(x=profit, nbins=500, labels={"x":"損益 (円)"}, title="損益ヒストグラム")
+            fp.update_traces(histnorm="percent")
+            fp.update_layout(yaxis_title="確率（%）", xaxis_range=[lower, upper])
+            fp.add_vline(x=m, line_dash="dash", line_color="blue", annotation_text="平均", annotation_position="top right")
+            fp.add_vline(x=md, line_dash="dot", line_color="orange", annotation_text="中央値", annotation_position="top left")
+            fp.add_vline(x=mo, line_dash="solid", line_color="green", annotation_text="最頻値", annotation_position="top left")
+            st.plotly_chart(fp, use_container_width=True)
 
         with tab4:
-            st.subheader("現状のファンド設定")
-            st.dataframe(df_funds.style.format({
-                "初期投資額": "{:,.0f} 円",
-                "月額積立額": "{:,.0f} 円",
-                "期待リターン（％）": "{:.2f}",
-                "リスク（％）": "{:.2f}"
-            }), use_container_width=True)
-
-            st.subheader("資産クラス間の相関係数")
-            df_corr = pd.DataFrame(correlation_matrix, index=fund_order, columns=fund_order)
-            mask = np.triu(np.ones(df_corr.shape)).astype(bool)
-            df_corr_masked = df_corr.mask(mask)
-            st.dataframe(df_corr_masked.style.format("{:.2f}"), use_container_width=True)
+            st.subheader("ファンド設定一覧")
+            st.dataframe(df_f.style.format({"初期投資額":"{:,.0f} 円","月額積立額":"{:,.0f} 円","期待リターン（％）":"{:.2f}","リスク（％）":"{:.2f}"}), use_container_width=True)
+            st.subheader("相関係数")
+            cc = pd.DataFrame(correlation_matrix, index=fund_order, columns=fund_order)
+            mask = np.triu(np.ones(cc.shape)).astype(bool)
+            st.dataframe(cc.mask(mask).style.format("{:.2f}"), use_container_width=True)
 
 if __name__ == "__main__":
     main()
+

@@ -190,9 +190,9 @@ def main():
             fig_profit = px.histogram(x=profit, nbins=500, labels={"x": "損益 (円)"}, title="損益ヒストグラム")
             fig_profit.update_traces(histnorm="percent")
             fig_profit.update_layout(yaxis_title="確率（%）", xaxis_range=[lower, upper])
-            fig_profit.add_vline(x=mean_profit, line_dash="dash", annotation_text="平均", annotation_position="top right", color="green")
-            fig_profit.add_vline(x=median_profit, line_dash="dot", annotation_text="中央値", annotation_position="top left", color="red")
-            fig_profit.add_vline(x=mode_profit, line_dash="solid", annotation_text="最頻値", annotation_position="top left", color="blue")
+            fig_profit.add_vline(x=mean_profit, line_dash="dash", annotation_text="平均", annotation_position="top right")
+            fig_profit.add_vline(x=median_profit, line_dash="dot", annotation_text="中央値", annotation_position="top left")
+            fig_profit.add_vline(x=mode_profit, line_dash="solid", annotation_text="最頻値", annotation_position="top left")
             st.plotly_chart(fig_profit, use_container_width=True)
 
             st.markdown(f"""

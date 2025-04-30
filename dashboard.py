@@ -167,9 +167,10 @@ def main():
             fig = px.line(
                 x=years,
                 y=mean_total,
-                labels={"x": "年", "y": "平均資産"},
-                title="平均資産推移",
-                color_discrete_sequence=["blue"]
+                labels={"x": "年", "y": "資産（円）"},
+                title="資産推移",
+                color_discrete_sequence=["blue"],
+                name="平均値"
             )
             fig.add_scatter(
                 x=years,

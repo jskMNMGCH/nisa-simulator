@@ -33,7 +33,6 @@ presets = {
     "Aggressive（積極型）":    [35000, 15000, 25000, 0,     10000, 10000, 0,     5000],
 }
 
-
 correlation_matrix = np.array([
     [ 1.00, 0.98, 0.90, -0.18, 0.65, 0.60, -0.05, -0.25],
     [ 0.98, 1.00, 0.92, -0.08, 0.68, 0.68, -0.06, -0.18],
@@ -79,18 +78,15 @@ def main():
     preset_name = st.sidebar.selectbox(
         "プリセットを選択",
         list(presets.keys()),
-        index=1  # デフォルトで Balanced を選ぶ場合は index=1
+        index=1  # デフォルトで Balanced を選択
     )
     monthly_presets = presets[preset_name]
-    # ── プリセット選択部分の解説 ──
-    # ユーザーがプリセットを選ぶと、monthly_presets に各ファンドの月額積立額リストが入る
 
     # ── サイドバー：ファンド設定 ──
     st.sidebar.header("ファンド設定")
     fund_settings = []
     for i, default in enumerate(default_funds):
         with st.sidebar.expander(default["name"], expanded=False):
-            # 初期投資額は固定デフォルト、プリセットには含めない
             initial = st.number_input(
                 f"{default['name']}：初期投資額",
                 min_value=0,
@@ -98,7 +94,6 @@ def main():
                 step=1000,
                 key=f"init_{i}"
             )
-            # 月額積立額はプリセット初期値を反映
             monthly = st.number_input(
                 f"{default['name']}：月額積立額",
                 min_value=0,
@@ -129,7 +124,6 @@ def main():
             })
 
     if run_simulation:
-        # （以下は既存のシミュレーション → 結果表示ロジックと同じ）
         result = simulate_montecarlo(fund_settings, correlation_matrix, n_simulation=n_simulation, years=n_years)
         years = np.arange(1, n_years + 1)
         df_result = pd.DataFrame(result.T, columns=[f"{y}年目" for y in years])
@@ -155,7 +149,7 @@ def main():
             "monthly": "月額積立額"
         })
 
-        tab1, tab2, tab3, tab4 = st.tabs(["総合指標", "資産推移", "損益ヒストグラム", "ファンド設定一覧"])
+        tab1, tab2, tab3, tab4 = st.tabs(["総合指標", "資産推移", "損益ヒストグラム", "ファンド設定一覧"]);
 
         with tab1:
             st.subheader("総合指標")
@@ -170,8 +164,23 @@ def main():
             st.subheader("平均・中央値資産推移")
             mean_total = df_result.iloc[:, :-1].mean()
             median_total = df_result.iloc[:, :-1].median()
-            fig = px.line(x=years, y=mean_total, labels={"x": "年", "y": "平均資産"}, title="平均資産推移")
-            fig.add_scatter(x=years, y=median_total, mode="lines+markers", name="中央値")
+            # 平均値資産推移を青色に固定
+            fig = px.line(
+                x=years,
+                y=mean_total,
+                labels={"x": "年", "y": "平均資産"},
+                title="平均資産推移",
+                color_discrete_sequence=["blue"]
+            )
+            # 中央値資産推移をオレンジ色に固定
+            fig.add_scatter(
+                x=years,
+                y=median_total,
+                mode="lines+markers",
+                name="中央値",
+                line_color="orange",
+                marker_color="orange"
+            )
             st.plotly_chart(fig, use_container_width=True)
 
         with tab3:
@@ -181,29 +190,54 @@ def main():
             upper = np.percentile(profit, 99)
             mean_profit = profit.mean()
             median_profit = profit.median()
-            hist, bin_edges = np.histogram(profit, bins=500, range=(lower, upper))
-            mode_profit = (bin_edges[np.argmax(hist)] + bin_edges[np.argmax(hist) + 1]) / 2
-            mean_profit_pct = (mean_profit / total_principal) * 100
-            median_profit_pct = (median_profit / total_principal) * 100
-            mode_profit_pct = (mode_profit / total_principal) * 100
+            mode_profit = (np.percentile(profit, np.bincount(np.digitize(profit, bins=np.linspace(lower, upper, 501))).argmax()) )
 
-            fig_profit = px.histogram(x=profit, nbins=500, labels={"x": "損益 (円)"}, title="損益ヒストグラム")
+            # 損益ヒストグラム
+            fig_profit = px.histogram(
+                x=profit,
+                nbins=500,
+                labels={"x": "損益 (円)"},
+                title="損益ヒストグラム"
+            )
             fig_profit.update_traces(histnorm="percent")
             fig_profit.update_layout(yaxis_title="確率（%）", xaxis_range=[lower, upper])
-            fig_profit.add_vline(x=mean_profit, line_dash="dash", annotation_text="平均", annotation_position="top right")
-            fig_profit.add_vline(x=median_profit, line_dash="dot", annotation_text="中央値", annotation_position="top left")
-            fig_profit.add_vline(x=mode_profit, line_dash="solid", annotation_text="最頻値", annotation_position="top left")
+            # 平均線を青色で描画
+            fig_profit.add_vline(
+                x=mean_profit,
+                line_dash="dash",
+                line_color="blue",
+                annotation_text="平均",
+                annotation_position="top right"
+            )
+            # 中央値線をオレンジ色で描画
+            fig_profit.add_vline(
+                x=median_profit,
+                line_dash="dot",
+                line_color="orange",
+                annotation_text="中央値",
+                annotation_position="top left"
+            )
+            # 最頻値線を緑色で描画
+            fig_profit.add_vline(
+                x=mode_profit,
+                line_dash="solid",
+                line_color="green",
+                annotation_text="最頻値",
+                annotation_position="top left"
+            )
             st.plotly_chart(fig_profit, use_container_width=True)
 
             st.markdown(f"""
             #### 含み損益まとめ
-            - 平均損益：{mean_profit:,.0f} 円（{mean_profit_pct:+.2f}%）
-            - 中央値損益：{median_profit:,.0f} 円（{median_profit_pct:+.2f}%）
-            - 最頻値損益：{mode_profit:,.0f} 円（{mode_profit_pct:+.2f}%）
-            """)
+            - 平均損益：{mean_profit:,.0f} 円（{mean_profit/total_principal*100:+.2f}%）
+            - 中央値損益：{median_profit:,.0f} 円（{median_profit/total_principal*100:+.2f}%）
+            - 最頻値損益：{mode_profit:,.0f} 円（{mode_profit/total_principal*100:+.2f}%）
+            """
+            )
 
         with tab4:
             st.subheader("現状のファンド設定")
+            df_funds = df_funds.copy()
             st.dataframe(df_funds.style.format({
                 "初期投資額": "{:,.0f} 円",
                 "月額積立額": "{:,.0f} 円",

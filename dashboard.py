@@ -137,22 +137,26 @@ def main():
             )
             st.plotly_chart(fig, use_container_width=True)
 
-        with tab3:
+       with tab3:
             st.subheader(f"{n_years}年後 損益分布")
-            profit = df["最終資産"] - principal
-            lower, upper = np.percentile(profit, [0, 99])
-            m, md = profit.mean(), profit.median()
-            hist, edges = np.histogram(profit, bins=500, range=(lower, upper))
-            mode_idx = np.argmax(hist)
-            mo = (edges[mode_idx] + edges[mode_idx+1]) / 2
+            profit = df_result["最終資産"] - total_principal
+            lower = np.percentile(profit, 0)
+            upper = np.percentile(profit, 99)
+            mean_profit = profit.mean()
+            median_profit = profit.median()
+            hist, bin_edges = np.histogram(profit, bins=500, range=(lower, upper))
+            mode_profit = (bin_edges[np.argmax(hist)] + bin_edges[np.argmax(hist) + 1]) / 2
+            mean_profit_pct = (mean_profit / total_principal) * 100
+            median_profit_pct = (median_profit / total_principal) * 100
+            mode_profit_pct = (mode_profit / total_principal) * 100
 
-            fp = px.histogram(x=profit, nbins=500, labels={"x":"損益 (円)"}, title="損益ヒストグラム")
-            fp.update_traces(histnorm="percent")
-            fp.update_layout(yaxis_title="確率（%）", xaxis_range=[lower, upper])
-            fp.add_vline(x=m, line_dash="dash", line_color="blue", annotation_text="平均", annotation_position="top right")
-            fp.add_vline(x=md, line_dash="dot", line_color="orange", annotation_text="中央値", annotation_position="top left")
-            fp.add_vline(x=mo, line_dash="solid", line_color="green", annotation_text="最頻値", annotation_position="top left")
-            st.plotly_chart(fp, use_container_width=True)
+            fig_profit = px.histogram(x=profit, nbins=500, labels={"x": "損益 (円)"}, title="損益ヒストグラム")
+            fig_profit.update_traces(histnorm="percent")
+            fig_profit.update_layout(yaxis_title="確率（%）", xaxis_range=[lower, upper])
+            fig_profit.add_vline(x=mean_profit, line_dash="dash", annotation_text="平均値", annotation_position="top right", line_color="blue")
+            fig_profit.add_vline(x=median_profit, line_dash="dot", annotation_text="中央値", annotation_position="top left", line_color="orange")
+            fig_profit.add_vline(x=mode_profit, line_dash="solid", annotation_text="最頻値", annotation_position="top left", line_color="green")
+            st.plotly_chart(fig_profit, use_container_width=True)
 
             st.markdown(f"""
             #### 含み損益まとめ
@@ -160,6 +164,8 @@ def main():
             - 中央値損益：{median_profit:,.0f} 円（{median_profit_pct:+.2f}%）
             - 最頻値損益：{mode_profit:,.0f} 円（{mode_profit_pct:+.2f}%）
             """)
+
+
 
         with tab4:
             st.subheader("ファンド設定一覧")

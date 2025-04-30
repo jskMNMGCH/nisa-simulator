@@ -16,14 +16,14 @@ fund_order = [
 ]
 
 default_funds = [
-    {"name": "全世界株式",         "initial": 0,    "monthly": 0,      "mean": 0.052,  "std": 0.16},   # 資産形成ハンドブック
+    {"name": "全世界株式",         "initial": 0,    "monthly": 100000,      "mean": 0.052,  "std": 0.16},   # 資産形成ハンドブック
     {"name": "先進国株式",         "initial": 0,     "monthly": 0,      "mean": 0.051,  "std": 0.16},   # 資産形成ハンドブック
-    {"name": "米国株式_S&P500",    "initial": 0,   "monthly": 75000,  "mean": 0.070,  "std": 0.20},   # 資産形成ハンドブック
-    {"name": "米国総合債券ファンド", "initial": 0,      "monthly": 500,    "mean": 0.025,  "std": 0.05},   # 一般市場データ
+    {"name": "米国株式_S&P500",    "initial": 0,   "monthly": 0,  "mean": 0.070,  "std": 0.20},   # 資産形成ハンドブック
+    {"name": "米国総合債券ファンド", "initial": 0,      "monthly": 0,    "mean": 0.025,  "std": 0.05},   # 一般市場データ
     {"name": "国内株式_TOPIX",     "initial": 0,    "monthly": 0,      "mean": 0.050,  "std": 0.16},   # 資産形成ハンドブック
-    {"name": "国内株式_日経平均",  "initial": 0,   "monthly": 25000,  "mean": 0.050,  "std": 0.16},   # 資産形成ハンドブック
+    {"name": "国内株式_日経平均",  "initial": 0,   "monthly": 0,  "mean": 0.050,  "std": 0.16},   # 資産形成ハンドブック
     {"name": "変動国債",            "initial": 0,    "monthly": 0,      "mean": 0.0083, "std": 0.02},   # 日本国債実績値
-    {"name": "ゴールドファンド",    "initial": 0,        "monthly": 4600,   "mean": 0.040,  "std": 0.12},   # 市場推定値
+    {"name": "ゴールドファンド",    "initial": 0,        "monthly": 0,   "mean": 0.040,  "std": 0.12},   # 市場推定値
 ]
 
 correlation_matrix = np.array([

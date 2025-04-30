@@ -162,16 +162,18 @@ def main():
 
         with tab2:
             st.subheader("平均・中央値資産推移")
-            mean_total = df_result.iloc[:, :-1].mean()
-            median_total = df_result.iloc[:, :-1].median()
+            mean_total = df_result.iloc[:,:-1].mean()
+            median_total = df_result.iloc[:,:-1].median()
             fig = px.line(
                 x=years,
                 y=mean_total,
-                labels={"x": "年", "y": "資産（円）"},
-                title="資産推移",
-                color_discrete_sequence=["blue"],
-                name="平均値"
+                labels={"x":"年","y":"資産（円）"},
+                title="平均・中央値資産推移",
+                color_discrete_sequence=["blue"]
             )
+            # 平均線に凡例を追加
+            fig.data[0].update(name="平均", legendgroup="平均")
+            # 中央値線を追加
             fig.add_scatter(
                 x=years,
                 y=median_total,
@@ -206,7 +208,7 @@ def main():
                 x=mean_profit,
                 line_dash="dash",
                 line_color="blue",
-                annotation_text="平均",
+                annotation_text="平均値",
                 annotation_position="top right"
             )
             fig_profit.add_vline(

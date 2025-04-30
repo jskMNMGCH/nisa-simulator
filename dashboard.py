@@ -170,8 +170,8 @@ def main():
             st.subheader("平均・中央値資産推移")
             mean_total = df_result.iloc[:, :-1].mean()
             median_total = df_result.iloc[:, :-1].median()
-            fig = px.line(x=years, y=mean_total, labels={"x": "年", "y": "平均資産"}, title="平均資産推移")
-            fig.add_scatter(x=years, y=median_total, mode="lines+markers", name="中央値")
+            fig = px.line(x=years, y=mean_total, labels={"x": "年", "y": "平均資産"}, title="平均資産推移", color="green")
+            fig.add_scatter(x=years, y=median_total, mode="lines+markers", name="中央値", color="red")
             st.plotly_chart(fig, use_container_width=True)
 
         with tab3:
@@ -190,9 +190,9 @@ def main():
             fig_profit = px.histogram(x=profit, nbins=500, labels={"x": "損益 (円)"}, title="損益ヒストグラム")
             fig_profit.update_traces(histnorm="percent")
             fig_profit.update_layout(yaxis_title="確率（%）", xaxis_range=[lower, upper])
-            fig_profit.add_vline(x=mean_profit, line_dash="dash", annotation_text="平均", annotation_position="top left")
-            fig_profit.add_vline(x=median_profit, line_dash="dot", annotation_text="中央値", annotation_position="top left")
-            fig_profit.add_vline(x=mode_profit, line_dash="solid", annotation_text="最頻値", annotation_position="top left")
+            fig_profit.add_vline(x=mean_profit, line_dash="dash", annotation_text="平均", annotation_position="top right", color="green")
+            fig_profit.add_vline(x=median_profit, line_dash="dot", annotation_text="中央値", annotation_position="top left", color="red")
+            fig_profit.add_vline(x=mode_profit, line_dash="solid", annotation_text="最頻値", annotation_position="top left", color="blue")
             st.plotly_chart(fig_profit, use_container_width=True)
 
             st.markdown(f"""

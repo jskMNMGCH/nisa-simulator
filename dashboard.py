@@ -120,16 +120,16 @@ def main():
             st.write(f"リスク（年率標準偏差）：{std_ret*100:.2f} %")
 
         with tab2:
-            st.subheader("平均・中央値資産推移")
+            st.subheader("平均値・中央値資産推移")
             mean_total, med_total = df.iloc[:,:-1].mean(), df.iloc[:,:-1].median()
             fig = px.line(
                 x=years, y=mean_total,
                 labels={"x":"年","y":"資産（円）"},
-                title="平均・中央値資産推移",
+                title="平均値・中央値資産推移",
                 color_discrete_sequence=["blue"]
             )
             # 平均線に凡例と表示設定を追加
-            fig.data[0].update(name="平均", legendgroup="平均", showlegend=True)
+            fig.data[0].update(name="平均値", legendgroup="平均値", showlegend=True)
             fig.add_scatter(
                 x=years, y=med_total,
                 mode="lines+markers", name="中央値",

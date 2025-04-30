@@ -15,8 +15,6 @@
 
 - [ライブデモはこちら](https://nisa-simulator-jskmnmgch.streamlit.app/)
 
-![スクリーンショット](docs/screenshot.png)
-
 ## 環境構築
 
 ```bash

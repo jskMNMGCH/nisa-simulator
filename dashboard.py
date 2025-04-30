@@ -170,8 +170,8 @@ def main():
             st.subheader("平均・中央値資産推移")
             mean_total = df_result.iloc[:, :-1].mean()
             median_total = df_result.iloc[:, :-1].median()
-            fig = px.line(x=years, y=mean_total, labels={"x": "年", "y": "平均資産"}, title="平均資産推移", color="green")
-            fig.add_scatter(x=years, y=median_total, mode="lines+markers", name="中央値", color="red")
+            fig = px.line(x=years, y=mean_total, labels={"x": "年", "y": "平均資産"}, title="平均資産推移")
+            fig.add_scatter(x=years, y=median_total, mode="lines+markers", name="中央値")
             st.plotly_chart(fig, use_container_width=True)
 
         with tab3:

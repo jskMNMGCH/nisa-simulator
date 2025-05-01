@@ -65,7 +65,7 @@ def simulate_montecarlo(fund_settings, correlation_matrix, n_simulation=20000, y
 
 def main():
     st.set_page_config(page_title="つみたてシミュレーション", layout="wide")
-    st.title("つみたてシミレーション")
+    st.title("つみたてシミュレーション")
 
     # サイドバー設定
     st.sidebar.header("シミュレーション設定")
